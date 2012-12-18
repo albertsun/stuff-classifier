@@ -1,6 +1,7 @@
 # encoding: utf-8
 
 require "lingua/stemmer"
+require "tokenizer"
 
 class StuffClassifier::Tokenizer
   require  "stuff-classifier/tokenizer/tokenizer_properties"
@@ -8,6 +9,7 @@ class StuffClassifier::Tokenizer
   def initialize(opts={})
     @language = opts.key?(:language) ? opts[:language] : "en"
     @properties = StuffClassifier::Tokenizer::TOKENIZER_PROPERTIES[@language]
+    @tokenizer = Tokenizer::Tokenizer.new(@language)
     
     @stemming = opts.key?(:stemming) ? opts[:stemming] : true
     if @stemming
@@ -19,13 +21,13 @@ class StuffClassifier::Tokenizer
     @language
   end
 
-  def preprocessing_regexps=(value)
-    @preprocessing_regexps = value
-  end
+  # def preprocessing_regexps=(value)
+  #   @preprocessing_regexps = value
+  # end
 
-  def preprocessing_regexps
-    @preprocessing_regexps || @properties[:preprocessing_regexps]
-  end
+  # def preprocessing_regexps
+  #   @preprocessing_regexps || @properties[:preprocessing_regexps]
+  # end
 
   def ignore_words=(value)
     @ignore_words = value
@@ -44,27 +46,18 @@ class StuffClassifier::Tokenizer
     return if string == ''
 
     words = []
+    @tokenizer.tokenize(string).each do |w|
+      next if w == '' || ignore_words.member?(w.downcase)
 
-    # tokenize string
-    string.split("\n").each do |line|
-
-      # Apply preprocessing regexps
-      if preprocessing_regexps
-        preprocessing_regexps.each { |regexp,replace_by| line.gsub!(regexp, replace_by) }
+      if stemming?
+        w = @stemmer.stem(w).downcase
+        w.gsub!(/[^\w]/u,"")
+        next if ignore_words.member?(w) or w.size < 2
+      else
+        w = w.downcase
       end
 
-      line.gsub(/\p{Word}+/).each do |w|
-          next if w == '' || ignore_words.member?(w.downcase)
-
-        if stemming? and stemable?(w)
-          w = @stemmer.stem(w).downcase
-          next if ignore_words.member?(w)
-        else
-          w = w.downcase
-        end
-
-        words << (block_given? ? (yield w) : w)
-      end
+      words << (block_given? ? (yield w) : w)
     end
 
     return words
@@ -72,8 +65,9 @@ class StuffClassifier::Tokenizer
 
 private 
 
-  def stemable?(word)
-    word =~ /^\p{Alpha}+$/
-  end
+  # def stemable?(word)
+  #   # word =~ /^\p{Alpha}+$/
+  #   word =~ /^[\w']+$/
+  # end
   
 end
