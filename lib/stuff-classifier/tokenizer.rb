@@ -52,7 +52,7 @@ class StuffClassifier::Tokenizer
       if stemming?
         w = @stemmer.stem(w).downcase
         w.gsub!(/[^\w]/u,"")
-        next if ignore_words.member?(w) or w.size < 2
+        next if ignore_words.member?(w) or w.size < 3
       else
         w = w.downcase
       end
