@@ -20,8 +20,8 @@ Gem::Specification.new do |s|
   
   s.add_runtime_dependency "ruby-stemmer"
   s.add_runtime_dependency "tokenizer"
-  s.add_runtime_dependency "sqlite3"
-  s.add_runtime_dependency "sequel"
+  # s.add_runtime_dependency "sqlite3"
+  # s.add_runtime_dependency "sequel"
 
 
   s.add_development_dependency "bundler"
